@@ -1,0 +1,124 @@
+
+
+from pathlib import Path
+import sys
+import os
+
+parent_dir =  os.path.dirname(os.getcwd())
+ 
+# setting path
+sys.path.append(parent_dir)
+
+import argparse
+import os
+import shutil
+import tempfile
+from prep_data import split_label, transform_data
+
+
+from azureml.core import Run
+
+import mlflow
+import mlflow.sklearn
+
+import pandas as pd
+import numpy as np
+from sklearn.compose import make_column_selector as selector
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+#from lightgbm import LGBMClassifier
+
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
+
+def parse_args():
+    # setup arg parser
+    parser = argparse.ArgumentParser()
+
+    # add arguments
+    parser.add_argument("--training_data", type=str, help="Path to training data")
+    parser.add_argument("--target_column_name", type=str, help="Name of target column")
+    parser.add_argument("--model_output", type=str, help="Path of output model")
+
+    # parse args
+    args = parser.parse_args()    
+
+    # return args
+    return args
+
+
+def main(args):
+    current_experiment = Run.get_context().experiment
+    tracking_uri = current_experiment.workspace.get_mlflow_tracking_uri()
+    print("tracking_uri: {0}".format(tracking_uri))
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(current_experiment.name)
+
+    # Read in data
+    print("Reading data...")
+    all_training_data = pd.read_parquet(args.training_data)
+    #target = all_training_data[args.target_column_name]
+    target_column_name = args.target_column_name
+    #features = all_training_data.drop([args.target_column_name], axis = 1)
+    
+    # Transform data
+    X, y = split_label(all_training_data, target_column_name)
+    X_train_original, X_test_original, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=7)
+
+    X_train, feat_pipe, features, classes = transform_data(X_train_original, y_train, target_column_name)
+    y_train = y_train[target_column_name].to_numpy()
+
+    X_test = feat_pipe.transform(X_test_original)
+    y_test = y_test[target_column_name].to_numpy()
+
+    train_data = X_train_original.copy()
+    train_data[target_column_name] = y_train
+
+    test_data = X_test_original.copy()
+    test_data[target_column_name] = y_test
+
+    print("Training model...") 
+    
+    #clf = LGBMClassifier()
+    clf = Pipeline(steps=[('classifier', LogisticRegression(solver='lbfgs'))])
+    model = clf.fit(X_train, y_train)
+
+    # Track model metrics
+
+
+    # Saving model with mlflow - leave this section unchanged
+    model_dir =  "./model_output"
+    with tempfile.TemporaryDirectory() as td:
+        print("Saving model with MLFlow to temporary directory")
+        tmp_output_dir = os.path.join(td, model_dir)
+        mlflow.sklearn.save_model(sk_model=model, path=tmp_output_dir)
+
+        print("Copying MLFlow model to output path")
+        for file_name in os.listdir(tmp_output_dir):
+            print("  Copying: ", file_name)
+            # As of Python 3.8, copytree will acquire dirs_exist_ok as
+            # an option, removing the need for listdir
+            shutil.copy2(src=os.path.join(tmp_output_dir, file_name), dst=os.path.join(args.model_output, file_name))
+
+
+# run script
+if __name__ == "__main__":
+    # add space in logs
+    print("*" * 60)
+    print("\n\n")
+
+    # parse args
+    args = parse_args()
+
+    # run main function
+    main(args)
+
+    # add space in logs
+    print("*" * 60)
+    print("\n\n")
+    
