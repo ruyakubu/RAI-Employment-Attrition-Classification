@@ -13,8 +13,6 @@ import argparse
 import os
 import shutil
 import tempfile
-from prep_data import split_label, transform_data
-
 
 from azureml.core import Run
 
@@ -27,13 +25,11 @@ from sklearn.compose import make_column_selector as selector
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-#from lightgbm import LGBMClassifier
-
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
 
 
 def parse_args():
@@ -87,9 +83,7 @@ def main(args):
     
     model = clf.fit(X_train, y_train)
 
-    # Track model metrics
-
-
+ 
     # Saving model with mlflow - leave this section unchanged
     model_dir =  "./model_output"
     with tempfile.TemporaryDirectory() as td:

@@ -2,7 +2,7 @@
 $schema: http://azureml/sdk-2-0/CommandComponent.json
 name: rai_employee_attrition_training_component
 display_name: Employee Atrition classification training component for RAI example
-version: 48
+version: 4
 type: command
 inputs:
   training_data:
