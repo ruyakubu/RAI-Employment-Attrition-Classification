@@ -2,7 +2,7 @@
 $schema: http://azureml/sdk-2-0/CommandComponent.json
 name: rai_employee_attrition_training_component
 display_name: Employee Atrition classification training component for RAI example
-version: 4
+version: 5
 type: command
 inputs:
   training_data:
@@ -13,7 +13,7 @@ outputs:
   model_output:
     type: path
 code: ./component/
-environment: azureml:AzureML-sklearn-1.0-ubuntu20.04-py38-cpu:1
+environment: azureml://registries/azureml/environments/AzureML-responsibleai-0.20-ubuntu20.04-py38-cpu/versions/4
 
 command: >-
   python training.py
