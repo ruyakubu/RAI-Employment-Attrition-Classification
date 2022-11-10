@@ -3,6 +3,7 @@
 ## Buisiness Use Case Overview
 
 ## Prerequisites
+- Login or Signup for a FREE Azure account
 
 ## What is Azure's Responsible AI dashboard?
 
