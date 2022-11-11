@@ -15,6 +15,7 @@ Azure Responsible AI (RAI) dashboard is a new feature within Azure Machine Learn
 
 # Backend built using some OSS
 ![OSS for RAI](img/RAI-OSS.png)
+
 The dashboard is built on some of machine learning’s best practice open-source tools for model debugging and assessment and responsible decision making that Microsoft and research community have been instrumental in developing — including ErrorAnalysis, InterpretML, Fairlearn, DICE, and EconML, for debugging and mitigating issues from AI models.
 
 ## How to use Error Analysis 
